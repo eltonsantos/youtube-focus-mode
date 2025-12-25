@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>YouTube Focus Mode</title>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="title">YouTube Focus Mode</div>
+        <div class="subtitle">Enable/disable and choose what to hide</div>
+      </header>
+
+      <section class="card">
+        <div class="row">
+          <div>
+            <div class="labelStrong">Enabled</div>
+            <div class="hint">Off = no rules applied</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="enabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <label for="mode">Mode</label>
+          <select id="mode">
+            <option value="light">Light</option>
+            <option value="strong">Strong</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="hint">
+          Light: reduces common distractions. Strong: makes YouTube "minimalist".
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Hide elements (ON/OFF)</div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideShorts" />
+          <label for="hideShorts">Shorts</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideExploreTrending" />
+          <label for="hideExploreTrending">Explore / Trending</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideSubscriptions" />
+          <label for="hideSubscriptions">Subscriptions (menu)</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideSidebar" />
+          <label for="hideSidebar">Left sidebar (menu)</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideHomeFeed" />
+          <label for="hideHomeFeed">Feed cards (Home)</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideSearchResultsExtras" />
+          <label for="hideSearchResultsExtras">Search extras (chips/filters)</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideRightRail" />
+          <label for="hideRightRail">Right column (recommendations)</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="keepPlaylist" />
+          <label for="keepPlaylist">Keep playlist when present</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideComments" />
+          <label for="hideComments">Comments</label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hideEndscreenCards" />
+          <label for="hideEndscreenCards">Player cards/endscreen</label>
+        </div>
+      </section>
+
+      <section class="footer">
+        <button id="apply">Apply</button>
+        <button id="reset" class="secondary">Reset</button>
+      </section>
+
+      <div class="small">
+        Note: YouTube changes its layout frequently. If something slips through, selectors can be adjusted in content.js.
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

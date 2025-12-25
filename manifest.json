@@ -1,0 +1,25 @@
+{
+    "name": "YouTube Focus Mode",
+    "version": "1.1.0",
+    "manifest_version": 3,
+    "description": "Focus mode for YouTube (Light/Strong/Custom) with ON/OFF and toggles to hide Shorts, Explore, Trending, feed and more.",
+    "permissions": ["storage"],
+    "host_permissions": ["*://www.youtube.com/*"],
+    "action": {
+      "default_title": "YouTube Focus Mode",
+      "default_popup": "popup.html"
+    },
+    "icons": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://www.youtube.com/*"],
+        "js": ["content.js"],
+        "run_at": "document_idle"
+      }
+    ]
+  }
+  

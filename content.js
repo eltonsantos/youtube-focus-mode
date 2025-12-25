@@ -1,0 +1,194 @@
+const DEFAULTS = {
+    enabled: true,
+    mode: "light",
+  
+    hideShorts: true,
+    hideExploreTrending: true,
+    hideSubscriptions: false,
+  
+    hideSidebar: false,
+    hideHomeFeed: false,
+    hideSearchResultsExtras: false,
+  
+    hideRightRail: false,
+    keepPlaylist: true,
+  
+    hideComments: false,
+    hideEndscreenCards: false
+  };
+  
+  let styleEl = null;
+  let currentConfig = { ...DEFAULTS };
+  
+  function ensureStyleEl() {
+    if (styleEl) return styleEl;
+    styleEl = document.createElement("style");
+    styleEl.id = "yt-focus-mode-style";
+    document.documentElement.appendChild(styleEl);
+    return styleEl;
+  }
+  
+  function buildCSS(cfg) {
+    // If disabled, don't apply anything
+    if (!cfg.enabled) return "";
+  
+    const css = [];
+  
+    // 1) Shorts (links + shelves + menu)
+    if (cfg.hideShorts) {
+      css.push(`
+        a[href^="/shorts/"] { display: none !important; }
+        ytd-reel-shelf-renderer, ytd-reel-item-renderer { display: none !important; }
+        ytd-rich-section-renderer:has(ytd-reel-shelf-renderer) { display: none !important; }
+  
+        /* Menu entries - title varies by language; we try by href */
+        ytd-guide-entry-renderer a[href^="/shorts"],
+        ytd-mini-guide-entry-renderer a[href^="/shorts"] { display: none !important; }
+        ytd-guide-entry-renderer:has(a[href^="/shorts"]),
+        ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]) { display: none !important; }
+      `);
+    }
+  
+    // 2) Explore / Trending (menu)
+    if (cfg.hideExploreTrending) {
+      css.push(`
+        ytd-guide-entry-renderer:has(a[href^="/feed/explore"]),
+        ytd-mini-guide-entry-renderer:has(a[href^="/feed/explore"]),
+        ytd-guide-entry-renderer:has(a[href^="/feed/trending"]),
+        ytd-mini-guide-entry-renderer:has(a[href^="/feed/trending"]) {
+          display: none !important;
+        }
+      `);
+    }
+  
+    // 3) Subscriptions (menu)
+    if (cfg.hideSubscriptions) {
+      css.push(`
+        ytd-guide-entry-renderer:has(a[href^="/feed/subscriptions"]),
+        ytd-mini-guide-entry-renderer:has(a[href^="/feed/subscriptions"]) {
+          display: none !important;
+        }
+      `);
+    }
+  
+    // 4) Left sidebar (guide/menu)
+    if (cfg.hideSidebar) {
+      css.push(`
+        #guide, ytd-guide-renderer { display: none !important; }
+        /* Layout adjustment when guide is hidden (YouTube may vary; best effort) */
+        ytd-page-manager { margin-left: 0 !important; }
+      `);
+    }
+  
+    // 5) Home feed (feed cards)
+    if (cfg.hideHomeFeed) {
+      css.push(`
+        /* Hide content grid on home */
+        ytd-browse[page-subtype="home"] #primary { display: none !important; }
+        ytd-browse[page-subtype="home"] #contents { display: none !important; }
+        ytd-browse[page-subtype="home"] ytd-rich-grid-renderer { display: none !important; }
+      `);
+    }
+  
+    // 6) Search extras (chips/filters etc.)
+    if (cfg.hideSearchResultsExtras) {
+      css.push(`
+        /* Filter/chip bar on search (may vary) */
+        ytd-search ytd-search-sub-menu-renderer { display: none !important; }
+        ytd-search ytd-horizontal-card-list-renderer { display: none !important; }
+        ytd-search ytd-chip-cloud-renderer { display: none !important; }
+      `);
+    }
+  
+    // 7) Right column on watch (recommendations / up next)
+    if (cfg.hideRightRail) {
+      if (cfg.keepPlaylist) {
+        css.push(`
+          /* Try to hide "related" while keeping playlist when present */
+          ytd-watch-flexy #secondary-inner #related { display: none !important; }
+        `);
+      } else {
+        css.push(`
+          ytd-watch-flexy #secondary { display: none !important; }
+        `);
+      }
+    }
+  
+    // 8) Comments
+    if (cfg.hideComments) {
+      css.push(`
+        #comments, ytd-comments { display: none !important; }
+      `);
+    }
+  
+    // 9) Player overlays (end screen/cards)
+    if (cfg.hideEndscreenCards) {
+      css.push(`
+        .ytp-endscreen-content,
+        .ytp-ce-element,
+        .ytp-cards-teaser,
+        .ytp-cards-button,
+        .ytp-paid-content-overlay { display: none !important; }
+      `);
+    }
+  
+    // "Strong mode" adjustments: general minimalism
+    if (cfg.mode === "strong") {
+      css.push(`
+        /* Reduce secondary navigation elements */
+        ytd-masthead #chips { display: none !important; }
+        ytd-browse ytd-feed-filter-chip-bar-renderer { display: none !important; }
+  
+        /* Try to reduce blocks below the player (without removing the player) */
+        ytd-watch-flexy #below #meta { margin-bottom: 6px !important; }
+      `);
+    }
+  
+    return css.join("\n");
+  }
+  
+  function applyConfig(cfg) {
+    currentConfig = { ...DEFAULTS, ...cfg };
+    const el = ensureStyleEl();
+    el.textContent = buildCSS(currentConfig);
+  }
+  
+  // SPA: re-apply on internal navigation
+  function hookNavigation() {
+    const origPushState = history.pushState;
+    history.pushState = function (...args) {
+      origPushState.apply(this, args);
+      window.dispatchEvent(new Event("yt-focus-location-changed"));
+    };
+  
+    window.addEventListener("popstate", () => {
+      window.dispatchEvent(new Event("yt-focus-location-changed"));
+    });
+  
+    window.addEventListener("yt-focus-location-changed", () => {
+      applyConfig(currentConfig);
+    });
+  }
+  
+  // Receive configs from popup
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "APPLY_FOCUS_CONFIG") {
+      applyConfig(msg.payload || {});
+    }
+  });
+  
+  // Initialization
+  (async function init() {
+    try {
+      const stored = await chrome.storage.sync.get(DEFAULTS);
+      applyConfig(stored);
+    } catch {
+      applyConfig(DEFAULTS);
+    }
+  
+    hookNavigation();
+  
+    // Re-apply when DOM changes (YouTube loads content dynamically)
+    const obs = new MutationObserver(() => applyConfig(currentConfig));
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+  })();
