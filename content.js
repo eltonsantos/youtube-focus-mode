@@ -8,6 +8,7 @@ const DEFAULTS = {
   
     hideSidebar: false,
     hideHomeFeed: false,
+    hideChipsBar: true,
     hideSearchResultsExtras: false,
   
     hideRightRail: false,
@@ -17,8 +18,10 @@ const DEFAULTS = {
     hideEndscreenCards: false
   };
   
-  let styleEl = null;
-  let currentConfig = { ...DEFAULTS };
+let styleEl = null;
+let currentConfig = { ...DEFAULTS };
+let isApplying = false;
+let debounceTimer = null;
   
   function ensureStyleEl() {
     if (styleEl) return styleEl;
@@ -34,18 +37,36 @@ const DEFAULTS = {
   
     const css = [];
   
-    // 1) Shorts (links + shelves + menu)
+    // 1) Shorts (links + shelves + menu + entire section)
     if (cfg.hideShorts) {
       css.push(`
+        /* Hide all shorts links */
         a[href^="/shorts/"] { display: none !important; }
-        ytd-reel-shelf-renderer, ytd-reel-item-renderer { display: none !important; }
+        
+        /* Hide shorts shelf and items */
+        ytd-reel-shelf-renderer { display: none !important; }
+        ytd-reel-item-renderer { display: none !important; }
+        
+        /* Hide entire rich section containing shorts */
         ytd-rich-section-renderer:has(ytd-reel-shelf-renderer) { display: none !important; }
-  
-        /* Menu entries - title varies by language; we try by href */
-        ytd-guide-entry-renderer a[href^="/shorts"],
-        ytd-mini-guide-entry-renderer a[href^="/shorts"] { display: none !important; }
-        ytd-guide-entry-renderer:has(a[href^="/shorts"]),
+        ytd-rich-section-renderer:has([is-shorts]) { display: none !important; }
+        ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]) { display: none !important; }
+        
+        /* Hide shorts shelf with title */
+        ytd-rich-shelf-renderer[is-shorts] { display: none !important; }
+        ytd-rich-shelf-renderer:has(a[href="/shorts"]) { display: none !important; }
+        
+        /* Hide "Shorts" section header */
+        #title-container:has(a[href="/shorts"]) { display: none !important; }
+        ytd-rich-section-renderer #rich-shelf-header { display: none !important; }
+        
+        /* Menu entries - by href */
+        ytd-guide-entry-renderer:has(a[href^="/shorts"]) { display: none !important; }
         ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]) { display: none !important; }
+        
+        /* Hide shorts tab on channel pages */
+        yt-tab-shape[tab-title="Shorts"] { display: none !important; }
+        tp-yt-paper-tab:has(a[href*="/shorts"]) { display: none !important; }
       `);
     }
   
@@ -90,7 +111,21 @@ const DEFAULTS = {
       `);
     }
   
-    // 6) Search extras (chips/filters etc.)
+    // 6) Filter chips bar (Tudo, Music, Mixes, etc.)
+    if (cfg.hideChipsBar) {
+      css.push(`
+        /* Home page chips bar */
+        ytd-feed-filter-chip-bar-renderer { display: none !important; }
+        #chip-bar { display: none !important; }
+        #chips-wrapper { display: none !important; }
+        yt-chip-cloud-renderer { display: none !important; }
+        
+        /* Masthead chips */
+        ytd-masthead #chips { display: none !important; }
+      `);
+    }
+
+    // 7) Search extras (chips/filters etc.)
     if (cfg.hideSearchResultsExtras) {
       css.push(`
         /* Filter/chip bar on search (may vary) */
@@ -100,7 +135,7 @@ const DEFAULTS = {
       `);
     }
   
-    // 7) Right column on watch (recommendations / up next)
+    // 8) Right column on watch (recommendations / up next)
     if (cfg.hideRightRail) {
       if (cfg.keepPlaylist) {
         css.push(`
@@ -114,14 +149,14 @@ const DEFAULTS = {
       }
     }
   
-    // 8) Comments
+    // 9) Comments
     if (cfg.hideComments) {
       css.push(`
         #comments, ytd-comments { display: none !important; }
       `);
     }
   
-    // 9) Player overlays (end screen/cards)
+    // 10) Player overlays (end screen/cards)
     if (cfg.hideEndscreenCards) {
       css.push(`
         .ytp-endscreen-content,
@@ -135,10 +170,6 @@ const DEFAULTS = {
     // "Strong mode" adjustments: general minimalism
     if (cfg.mode === "strong") {
       css.push(`
-        /* Reduce secondary navigation elements */
-        ytd-masthead #chips { display: none !important; }
-        ytd-browse ytd-feed-filter-chip-bar-renderer { display: none !important; }
-  
         /* Try to reduce blocks below the player (without removing the player) */
         ytd-watch-flexy #below #meta { margin-bottom: 6px !important; }
       `);
@@ -189,6 +220,16 @@ const DEFAULTS = {
     hookNavigation();
   
     // Re-apply when DOM changes (YouTube loads content dynamically)
-    const obs = new MutationObserver(() => applyConfig(currentConfig));
+    // Using debounce + flag to prevent infinite loop
+    const obs = new MutationObserver(() => {
+      if (isApplying) return;
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        isApplying = true;
+        applyConfig(currentConfig);
+        isApplying = false;
+      }, 100);
+    });
     obs.observe(document.documentElement, { childList: true, subtree: true });
   })();

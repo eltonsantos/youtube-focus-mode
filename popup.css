@@ -62,20 +62,9 @@
   .toggle:first-of-type { border-top: none; }
   .toggle input { transform: scale(1.1); }
   
-  .footer { display: flex; gap: 8px; margin-top: 6px; }
-  button {
-    flex: 1;
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: var(--btn);
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  button.secondary { background: var(--btn2); }
-  
-  .small { margin-top: 10px; font-size: 11px; color: var(--muted); }
+  .small { margin-top: 10px; font-size: 11px; color: var(--muted); text-align: center; }
+  .small a { color: var(--btn); text-decoration: none; }
+  .small a:hover { text-decoration: underline; }
   
   /* Switch */
   .switch { position: relative; display: inline-block; width: 44px; height: 24px; }

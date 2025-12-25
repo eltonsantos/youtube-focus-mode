@@ -9,6 +9,7 @@ const DEFAULTS = {
   
     hideSidebar: false,
     hideHomeFeed: false,
+    hideChipsBar: true,
     hideSearchResultsExtras: false,
   
     hideRightRail: false,
@@ -26,11 +27,12 @@ const DEFAULTS = {
   
       hideSidebar: false,
       hideHomeFeed: false,
+      hideChipsBar: true,
       hideSearchResultsExtras: false,
-  
+
       hideRightRail: false,
       keepPlaylist: true,
-  
+
       hideComments: false,
       hideEndscreenCards: true
     },
@@ -38,9 +40,10 @@ const DEFAULTS = {
       hideShorts: true,
       hideExploreTrending: true,
       hideSubscriptions: true,
-  
+
       hideSidebar: true,
       hideHomeFeed: true,
+      hideChipsBar: true,
       hideSearchResultsExtras: true,
   
       hideRightRail: true,
@@ -74,6 +77,7 @@ const DEFAULTS = {
   
     $("hideSidebar").checked = cfg.hideSidebar;
     $("hideHomeFeed").checked = cfg.hideHomeFeed;
+    $("hideChipsBar").checked = cfg.hideChipsBar;
     $("hideSearchResultsExtras").checked = cfg.hideSearchResultsExtras;
   
     $("hideRightRail").checked = cfg.hideRightRail;
@@ -91,6 +95,7 @@ const DEFAULTS = {
       "hideSubscriptions",
       "hideSidebar",
       "hideHomeFeed",
+      "hideChipsBar",
       "hideSearchResultsExtras",
       "hideRightRail",
       "keepPlaylist",
@@ -113,6 +118,7 @@ const DEFAULTS = {
   
       hideSidebar: $("hideSidebar").checked,
       hideHomeFeed: $("hideHomeFeed").checked,
+      hideChipsBar: $("hideChipsBar").checked,
       hideSearchResultsExtras: $("hideSearchResultsExtras").checked,
   
       hideRightRail: $("hideRightRail").checked,
@@ -131,10 +137,15 @@ const DEFAULTS = {
   }
   
   async function sendApplyMessage(cfg) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
-    if (!String(tab.url || "").includes("youtube.com")) return;
-    await chrome.tabs.sendMessage(tab.id, { type: "APPLY_FOCUS_CONFIG", payload: cfg });
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
+      if (!String(tab.url || "").includes("youtube.com")) return;
+      await chrome.tabs.sendMessage(tab.id, { type: "APPLY_FOCUS_CONFIG", payload: cfg });
+    } catch (err) {
+      // Content script not ready or tab not available - ignore silently
+      console.log("Could not send message to content script:", err.message);
+    }
   }
   
   async function init() {
@@ -165,6 +176,7 @@ const DEFAULTS = {
       "hideSubscriptions",
       "hideSidebar",
       "hideHomeFeed",
+      "hideChipsBar",
       "hideSearchResultsExtras",
       "hideRightRail",
       "keepPlaylist",
@@ -181,20 +193,6 @@ const DEFAULTS = {
         await sendApplyMessage(next);
       });
     }
-  
-    $("apply").addEventListener("click", async () => {
-      let cfgNow = readUI();
-      cfgNow = applyModePresetIfNeeded(cfgNow);
-      await saveConfig(cfgNow);
-      await sendApplyMessage(cfgNow);
-      window.close();
-    });
-  
-    $("reset").addEventListener("click", async () => {
-      await saveConfig(DEFAULTS);
-      setUI(DEFAULTS);
-      await sendApplyMessage(DEFAULTS);
-    });
   }
   
   init();
