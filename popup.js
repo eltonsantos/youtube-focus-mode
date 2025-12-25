@@ -16,7 +16,8 @@ const DEFAULTS = {
     keepPlaylist: true,
   
     hideComments: false,
-    hideEndscreenCards: false
+    hideEndscreenCards: false,
+    hideSponsoredAds: true
   };
   
   const MODE_PRESETS = {
@@ -34,7 +35,8 @@ const DEFAULTS = {
       keepPlaylist: true,
 
       hideComments: false,
-      hideEndscreenCards: true
+      hideEndscreenCards: true,
+      hideSponsoredAds: true
     },
     strong: {
       hideShorts: true,
@@ -50,7 +52,8 @@ const DEFAULTS = {
       keepPlaylist: true,
   
       hideComments: true,
-      hideEndscreenCards: true
+      hideEndscreenCards: true,
+      hideSponsoredAds: true
     }
   };
   
@@ -85,6 +88,7 @@ const DEFAULTS = {
   
     $("hideComments").checked = cfg.hideComments;
     $("hideEndscreenCards").checked = cfg.hideEndscreenCards;
+    $("hideSponsoredAds").checked = cfg.hideSponsoredAds;
   
     // If disabled, disable UI (optional)
     const disabled = !cfg.enabled;
@@ -100,7 +104,8 @@ const DEFAULTS = {
       "hideRightRail",
       "keepPlaylist",
       "hideComments",
-      "hideEndscreenCards"
+      "hideEndscreenCards",
+      "hideSponsoredAds"
     ]) {
       $(id).disabled = disabled;
     }
@@ -125,7 +130,8 @@ const DEFAULTS = {
       keepPlaylist: $("keepPlaylist").checked,
   
       hideComments: $("hideComments").checked,
-      hideEndscreenCards: $("hideEndscreenCards").checked
+      hideEndscreenCards: $("hideEndscreenCards").checked,
+      hideSponsoredAds: $("hideSponsoredAds").checked
     };
   }
   
@@ -181,7 +187,8 @@ const DEFAULTS = {
       "hideRightRail",
       "keepPlaylist",
       "hideComments",
-      "hideEndscreenCards"
+      "hideEndscreenCards",
+      "hideSponsoredAds"
     ];
   
     for (const id of toggles) {

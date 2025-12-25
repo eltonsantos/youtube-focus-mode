@@ -15,7 +15,8 @@ const DEFAULTS = {
     keepPlaylist: true,
   
     hideComments: false,
-    hideEndscreenCards: false
+    hideEndscreenCards: false,
+    hideSponsoredAds: true
   };
   
 let styleEl = null;
@@ -164,6 +165,52 @@ let debounceTimer = null;
         .ytp-cards-teaser,
         .ytp-cards-button,
         .ytp-paid-content-overlay { display: none !important; }
+      `);
+    }
+
+    // 11) Sponsored/Promoted ads in feed
+    if (cfg.hideSponsoredAds) {
+      css.push(`
+        /* Hide sponsored/promoted video cards */
+        ytd-ad-slot-renderer { display: none !important; }
+        ytd-in-feed-ad-layout-renderer { display: none !important; }
+        ytd-promoted-sparkles-web-renderer { display: none !important; }
+        ytd-promoted-video-renderer { display: none !important; }
+        ytd-display-ad-renderer { display: none !important; }
+        ytd-compact-promoted-video-renderer { display: none !important; }
+        ytd-banner-promo-renderer { display: none !important; }
+        ytd-action-companion-ad-renderer { display: none !important; }
+        ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"] { display: none !important; }
+        
+        /* Hide rich items containing ads */
+        ytd-rich-item-renderer:has(ytd-ad-slot-renderer) { display: none !important; }
+        ytd-rich-item-renderer:has([is-ad]) { display: none !important; }
+        ytd-rich-item-renderer:has(ytd-in-feed-ad-layout-renderer) { display: none !important; }
+        
+        /* Hide video items with "Patrocinado" or "Sponsored" badge */
+        ytd-rich-item-renderer:has(span.ytd-badge-supported-renderer) { display: none !important; }
+        ytd-rich-item-renderer:has([badge-style="BADGE_STYLE_TYPE_AD"]) { display: none !important; }
+        
+        /* Hide banner/display ads with "Acessar o site" or similar */
+        ytd-rich-section-renderer:has(ytd-ad-slot-renderer) { display: none !important; }
+        ytd-rich-section-renderer:has(ytd-in-feed-ad-layout-renderer) { display: none !important; }
+        ytd-rich-section-renderer:has([is-ad]) { display: none !important; }
+        
+        /* Hide masthead ads */
+        ytd-primetime-promo-renderer { display: none !important; }
+        ytd-brand-video-shelf-renderer { display: none !important; }
+        ytd-statement-banner-renderer { display: none !important; }
+        ytd-brand-video-singleton-renderer { display: none !important; }
+        
+        /* Hide search result ads */
+        ytd-search-pyv-renderer { display: none !important; }
+        
+        /* Hide movie/purchase promos */
+        ytd-movie-offer-module-renderer { display: none !important; }
+        ytd-merch-shelf-renderer { display: none !important; }
+        
+        /* Hide any element containing ad text markers */
+        #content:has(> ytd-in-feed-ad-layout-renderer) { display: none !important; }
       `);
     }
   
